@@ -1,5 +1,4 @@
 /tmp/
-/output/pdf/gmres_images/
 **/node_modules/
 **/__pycache__/
 *.py[cod]
@@ -7,6 +6,6 @@
 .env
 .env.*
 *.inspect.ndjson
-`$*
+~$*
 Thumbs.db
 .DS_Store

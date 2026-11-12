@@ -32,9 +32,3 @@ node build_demo.mjs
 ```
 
 Các tập lệnh `run_*.mjs` chứa cấu hình thí nghiệm. Bảng và dữ liệu kết quả nằm trong `spline_image_project/results/`. MAE đo chất lượng nội suy so với dữ liệu tham chiếu. Sai lệch bộ giải đo độ chênh giữa Gauss–Seidel và Thomas trên cùng spline trước lượng tử hóa.
-
-## Tài liệu GMRES
-
-[PDF minh họa](output/pdf/GMRES_hinh_anh_va_mo_hinh.pdf), [bộ hình PNG](output/pdf/GMRES_bo_hinh_PNG.zip), [dữ liệu ví dụ](output/pdf/gmres_example_data.csv) và [cấu hình](output/pdf/gmres_example_config.json) thuộc bộ tài liệu GMRES đã chuẩn bị trước đó.
-
-[Tập lệnh dựng PDF](build_gmres_visuals.py) dùng Python với NumPy, Pillow, ReportLab và pypdfium2, cùng phông Arial trên Windows. Để dựng lại hình trích dẫn, đặt [tài liệu nguồn KTH](https://www.math.kth.se/na/SF2524/matber15/linsys.pdf) tại `tmp/pdfs/sources/kth_linsys.pdf` trước khi chạy.
