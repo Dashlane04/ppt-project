@@ -1,6 +1,6 @@
-# Kết quả chạy ngày 1–7
+# Kết quả nội suy 2D và đối chiếu bộ giải
 
-Ảnh tham chiếu 384 × 224 px. MAE đo trên ảnh đã chặn và làm tròn về 8 bit. Các số dưới đây tính từ một lần chạy có cấu hình cố định.
+Ảnh tham chiếu có kích thước $`384\times224`$ pixel. Mỗi dòng so sánh ba phương pháp trên cùng ảnh nhỏ và cùng hệ số phóng. MAE tính theo mức xám sau khi đưa ảnh phóng về dải $`[0,255]`$ và làm tròn về 8 bit.
 
 | Ảnh | Mức phóng | Song tuyến tính | Bicubic Keys | Spline tự nhiên |
 |---|---:|---:|---:|---:|
@@ -17,15 +17,15 @@
 
 ## Hai bộ giải trên hàng pixel ở mức 4×
 
-Mỗi hàng có 96 mẫu và 94 ẩn bên trong. Cùng vế phải cho cả hai bộ giải. Ngưỡng dừng tuyệt đối 10⁻⁸ theo chuẩn vô cùng.
+Mỗi hàng có 96 mẫu và 94 ẩn tại các nút trong. Thomas và Gauss–Seidel giải cùng hệ $`AM=b`$ trên từng hàng. Gauss–Seidel dừng khi $`\lVert b-A\widetilde M\rVert_\infty\le10^{-8}`$.
 
-| Hàng | Vòng GS | Phần dư Thomas | Phần dư GS | Sai khác đạo hàm cấp hai | Sai lệch mức xám trên lưới đầu ra |
+| Hàng | Vòng Gauss–Seidel | Phần dư Thomas | Phần dư Gauss–Seidel | Sai khác đạo hàm cấp hai | Sai lệch mức xám trên lưới đầu ra |
 |---|---:|---:|---:|---:|---:|
-| Hàng biên thẳng, lấy từ hàng gốc 64–67 | 21 | 2.842e-14 | 3.287e-9 | 1.460e-9 | 4.281e-11 |
-| Hàng hoa văn, lấy từ hàng gốc 112–115 | 22 | 3.411e-13 | 3.028e-9 | 1.310e-9 | 6.585e-11 |
+| Hàng biên thẳng, lấy từ hàng gốc 64–67 | 21 | $`2{,}842\times10^{-14}`$ | $`3{,}287\times10^{-9}`$ | $`1{,}460\times10^{-9}`$ | $`4{,}281\times10^{-11}`$ |
+| Hàng hoa văn, lấy từ hàng gốc 112–115 | 22 | $`3{,}411\times10^{-13}`$ | $`3{,}028\times10^{-9}`$ | $`1{,}310\times10^{-9}`$ | $`6{,}585\times10^{-11}`$ |
 | Hàng đối chứng hằng 128 | 0 | 0 | 0 | 0 | 0 |
 
-Sai lệch mức xám ở cột cuối so với spline dùng Thomas, tính trước chặn và làm tròn trên 384 vị trí đầu ra.
+Cột cuối lấy sai lệch cực đại giữa hai spline trên 384 vị trí đầu ra, trước khi giới hạn dải và làm tròn. Ở hàng hằng, sai phân bậc hai bằng 0 nên nghiệm khởi tạo đã thỏa tiêu chuẩn dừng.
 
 - [Đồ thị phần dư](hoi-tu-gauss-seidel.png)
 - [Mức sáng qua biên](mat-cat-bien.png)
