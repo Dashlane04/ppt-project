@@ -1,0 +1,32 @@
+{
+  "volumeDimensions": [
+    17,
+    17,
+    13
+  ],
+  "referenceSpacingMm": [
+    1,
+    1,
+    1
+  ],
+  "knownZMm": [
+    0,
+    3,
+    6,
+    9,
+    12
+  ],
+  "heldOutZMm": [
+    1,
+    2,
+    4,
+    5,
+    7,
+    8,
+    10,
+    11
+  ],
+  "evaluatedVoxels": 2312,
+  "maeLinear": 4.070801082543144,
+  "maeNaturalSpline": 0.36959168591267116
+}

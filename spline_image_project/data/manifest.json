@@ -1,0 +1,46 @@
+{
+  "width": 384,
+  "height": 224,
+  "photos": {
+    "camera": {
+      "subject": "Camera",
+      "credit": "Lav Varshney",
+      "rights": "CC0",
+      "source_url": "https://raw.githubusercontent.com/scikit-image/scikit-image/v0.25.2/skimage/data/camera.png",
+      "documentation_url": "https://scikit-image.org/docs/0.25.x/api/skimage.data.html#skimage.data.camera",
+      "original_dimensions": [
+        512,
+        512
+      ],
+      "original_sha256": "b0793d2adda0fa6ae899c03989482bff9a42d3d5690fc7e3648f2795d730c23a",
+      "crop_ltrb_zero_based_exclusive_end": [
+        64,
+        144,
+        448,
+        368
+      ],
+      "grayscale": "floor((299*R+587*G+114*B+500)/1000)",
+      "reference_gray8_sha256": "0d49706575d69b7d578f1e9d3cd39afc65cdb092e81c0924af8f51947539621b"
+    },
+    "astronaut": {
+      "subject": "Eileen Collins",
+      "credit": "NASA",
+      "rights": "Public domain per the scikit-image data documentation",
+      "source_url": "https://raw.githubusercontent.com/scikit-image/scikit-image/v0.25.2/skimage/data/astronaut.png",
+      "documentation_url": "https://scikit-image.org/docs/0.25.x/api/skimage.data.html#skimage.data.astronaut",
+      "original_dimensions": [
+        512,
+        512
+      ],
+      "original_sha256": "88431cd9653ccd539741b555fb0a46b61558b301d4110412b5bc28b5e3ea6cb5",
+      "crop_ltrb_zero_based_exclusive_end": [
+        64,
+        144,
+        448,
+        368
+      ],
+      "grayscale": "floor((299*R+587*G+114*B+500)/1000)",
+      "reference_gray8_sha256": "788a5efacf1612c6975c892c285a8301cca947311e6bad6b9b678c20e78ec1dc"
+    }
+  }
+}

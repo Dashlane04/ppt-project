@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phóng to ảnh số và spline tự nhiên</title>
+<style>
+  :root { color-scheme: light; --ink:#132b42; --muted:#4b6176; --blue:#145886; --line:#d4e0ea; --paper:#f4f8fb; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:16px/1.55 Arial,sans-serif; color:var(--ink); background:var(--paper); }
+  main { width:min(1140px,100% - 36px); margin:0 auto; padding:44px 0 64px; }
+  header { border-top:4px solid var(--blue); padding:24px 0 22px; }
+  .kicker { margin:0 0 7px; font-size:13px; color:var(--blue); font-weight:bold; letter-spacing:.06em; }
+  h1,h2,h3,p { margin:0; }
+  h1 { font-size:clamp(29px,5vw,48px); line-height:1.14; }
+  h2 { font-size:clamp(23px,3vw,31px); line-height:1.2; }
+  h3 { font-size:17px; }
+  .intro { max-width:76ch; margin-top:12px; color:var(--muted); }
+  section { margin-top:24px; padding:24px; border:1px solid var(--line); border-radius:14px; background:#fff; }
+  .controls,.source { display:flex; flex-wrap:wrap; align-items:end; gap:18px; margin:16px 0; }
+  label { display:grid; gap:6px; font-size:14px; font-weight:bold; }
+  select { min-height:42px; width:100%; border:1px solid #a7b9c9; border-radius:7px; padding:7px 28px 7px 10px; background:#fff; font:inherit; color:var(--ink); }
+  .source { align-items:center; padding:13px 16px; background:var(--paper); border-radius:9px; }
+  .source canvas { width:min(180px,100%); height:auto; display:block; image-rendering:pixelated; border-radius:4px; }
+  .source small { display:block; color:var(--muted); }
+  .pair { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+  figure { margin:0; min-width:0; }
+  .pair canvas { display:block; width:100%; height:auto; margin-top:10px; image-rendering:pixelated; background:var(--paper); border-radius:6px; }
+  .metric { margin-top:8px; font-variant-numeric:tabular-nums; }
+  .method,.note { color:var(--muted); font-size:14px; margin-top:5px; }
+  .chart { display:block; width:100%; height:auto; margin:12px 0; }
+  .colorbar { height:8px; border-radius:4px; margin:12px 0 4px; background:linear-gradient(90deg,#faf5e8,#126c72); }
+  details { margin-top:15px; }
+  summary { color:var(--blue); font-weight:bold; cursor:pointer; }
+  table { border-collapse:collapse; width:100%; margin-top:12px; font-size:14px; font-variant-numeric:tabular-nums; }
+  th,td { padding:7px 10px; border-bottom:1px solid var(--line); text-align:right; }
+  th { background:var(--paper); }
+  .table-wrap { overflow-x:auto; }
+  @media (max-width:630px) {
+    main { width:calc(100% - 22px); padding-top:15px; }
+    section { padding:15px; }
+    .pair { grid-template-columns:1fr; }
+    .controls label { flex:1 1 160px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="kicker">PHƯƠNG PHÁP TÍNH · MỐC NGÀY 14</p>
+    <h1>Phóng to ảnh số</h1>
+    <p class="intro">Đổi phương pháp trên cùng đầu vào để quan sát biên và chi tiết. Đặt mức sai lệch cho phép để so sánh spline dùng Gauss–Seidel với spline dùng Thomas.</p>
+  </header>
+  <section aria-labelledby="image-title">
+    <h2 id="image-title">So sánh ảnh phóng</h2>
+    <div class="controls">
+      <label>Ảnh tham chiếu <select id="sample"></select></label>
+      <label>Mức phóng <select id="scale"><option value="2">2×</option><option value="4" selected>4×</option></select></label>
+    </div>
+    <div class="source">
+      <canvas id="input-canvas" role="img" aria-label="Ảnh nhỏ dùng chung làm đầu vào"></canvas>
+      <div><h3>Ảnh đầu vào chung</h3><p id="dimensions" aria-live="polite"></p><small>Mỗi pixel là trung bình một khối trên ảnh tham chiếu.</small></div>
+    </div>
+    <div class="pair">
+      <figure>
+        <label>Phương pháp bên trái <select id="left-method"></select></label>
+        <canvas id="left-canvas" role="img" aria-label="Kết quả bên trái"></canvas>
+        <figcaption><p class="metric" id="left-metric" aria-live="polite"></p><p class="method" id="left-description"></p></figcaption>
+      </figure>
+      <figure>
+        <label>Phương pháp bên phải <select id="right-method"></select></label>
+        <canvas id="right-canvas" role="img" aria-label="Kết quả bên phải"></canvas>
+        <figcaption><p class="metric" id="right-metric" aria-live="polite"></p><p class="method" id="right-description"></p></figcaption>
+      </figure>
+    </div>
+    <p class="note">MAE tính sau khi chặn và làm tròn về ảnh 8 bit, so với ảnh tham chiếu cùng kích thước.</p>
+  </section>
+  <section aria-labelledby="solver-title">
+    <h2 id="solver-title">Giải hệ spline trên một hàng pixel</h2>
+    <p class="intro">Các hàng thử ở mức 4× có 96 mẫu và 94 ẩn bên trong. Chặn sai lệch 1D bằng phần dư chia 16. Chọn mức sai lệch δ để đặt ngưỡng phần dư là 16δ.</p>
+    <div class="controls">
+      <label>Hàng thử
+        <select id="solver-case">
+          <option value="edge">Biên thẳng · hàng 16 của ảnh nhỏ</option>
+          <option value="texture">Hoa văn · hàng 28 của ảnh nhỏ</option>
+          <option value="flat">Đối chứng · 96 mẫu hằng 128</option>
+        </select>
+      </label>
+      <label>Mức sai lệch cho phép δ
+        <select id="row-delta">
+          <option value="1">1 mức xám</option>
+          <option value="0.1" selected>0,1 mức xám</option>
+          <option value="0.01">0,01 mức xám</option>
+          <option value="strict">Đối chiếu ngày 7 · phần dư 10⁻⁸</option>
+        </select>
+      </label>
+    </div>
+    <p id="solver-result" class="metric" aria-live="polite"></p>
+    <p id="solver-error" class="note"></p>
+    <img class="chart" src="data:image/png;base64,%%CONVERGENCE_GRAPH%%" alt="Sai lệch mức xám đo trên lưới dày và chặn phần dư chia 16 theo số vòng của hai hàng thử.">
+    <details>
+      <summary>Xem từng vòng quét của hàng đang chọn</summary>
+      <div class="table-wrap"><table>
+        <thead><tr><th scope="col">Vòng</th><th scope="col">Phần dư</th><th scope="col">Sai lệch mức xám đo được</th><th scope="col">Chặn sai lệch</th></tr></thead>
+        <tbody id="trace"></tbody>
+      </table></div>
+    </details>
+  </section>
+  <section aria-labelledby="image-bound-title">
+    <h2 id="image-bound-title">Kiểm tra sai lệch trên toàn ảnh 2D</h2>
+    <p class="intro">Phóng 4× bằng Gauss–Seidel theo hàng rồi theo cột. Chọn phần sai lệch dành cho lượt ngang để thay đổi hai ngưỡng phần dư, với cùng mục tiêu δ.</p>
+    <div class="controls">
+      <label>Ảnh thử <select id="image-case"><option value="edge">Biên tương phản</option><option value="texture" selected>Hoa văn</option></select></label>
+      <label>Mức sai lệch cho phép δ
+        <select id="image-delta">
+          <option value="1">1 mức xám</option>
+          <option value="0.1" selected>0,1 mức xám</option>
+          <option value="0.01">0,01 mức xám</option>
+        </select>
+      </label>
+      <label>Phần sai lệch dành cho lượt ngang
+        <select id="image-share">
+          <option value="same" selected>Cùng ngưỡng phần dư (5/7)</option>
+          <option value="0.25">25%</option>
+          <option value="0.5">50%</option>
+          <option value="0.75">75%</option>
+        </select>
+      </label>
+    </div>
+    <p id="image-bound-result" class="metric" aria-live="polite"></p>
+    <p id="image-bound-detail" class="note"></p>
+    <div class="pair">
+      <figure>
+        <h3>Spline dùng Thomas</h3>
+        <canvas id="thomas-image" role="img" aria-label="Ảnh spline tham chiếu tính bằng Thomas"></canvas>
+      </figure>
+      <figure>
+        <h3>Bản đồ sai lệch Gauss–Seidel</h3>
+        <canvas id="image-error-map" role="img" aria-label="Sai lệch tuyệt đối trước lượng tử hóa so với Thomas"></canvas>
+        <div class="colorbar" aria-hidden="true"></div>
+        <p id="map-scale" class="note"></p>
+      </figure>
+    </div>
+  </section>
+</main>
+<!-- INLINE_MODULE -->
+</body>
+</html>

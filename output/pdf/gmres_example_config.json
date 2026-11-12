@@ -1,0 +1,25 @@
+{
+  "N": 64,
+  "restart": 20,
+  "rtol": 1e-08,
+  "max_inner": 200,
+  "matrix": "8x8 index grid, diag 4.5, offdiag -0.7,-1.3,-0.9,-1.1; row scale logspace(-1,1,N)",
+  "xstar": "sin(arange(N)+1)",
+  "results": {
+    "Không tiền điều kiện": {
+      "steps": 109,
+      "final_residual": 9.98225863281487e-09,
+      "relative_error": 5.123159820065102e-07
+    },
+    "Jacobi": {
+      "steps": 23,
+      "final_residual": 6.0259377638417745e-09,
+      "relative_error": 2.5583751941671028e-08
+    },
+    "ILU(0)": {
+      "steps": 9,
+      "final_residual": 2.5238022897535576e-09,
+      "relative_error": 2.0251519639481536e-09
+    }
+  }
+}

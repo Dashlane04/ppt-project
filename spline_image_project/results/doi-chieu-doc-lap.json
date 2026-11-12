@@ -1,0 +1,20 @@
+[
+  {
+    "case": "edge",
+    "denseReference": "numpy.linalg.solve",
+    "thomasMaxAbsDifference": 0.0,
+    "gaussSeidelMaxAbsDifference": 1.4602063252604737e-09
+  },
+  {
+    "case": "texture",
+    "denseReference": "numpy.linalg.solve",
+    "thomasMaxAbsDifference": 5.684341886080802e-14,
+    "gaussSeidelMaxAbsDifference": 1.31034383343831e-09
+  },
+  {
+    "case": "flat",
+    "denseReference": "numpy.linalg.solve",
+    "thomasMaxAbsDifference": 0.0,
+    "gaussSeidelMaxAbsDifference": 0.0
+  }
+]
