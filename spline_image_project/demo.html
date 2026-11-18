@@ -20,8 +20,20 @@
   .controls,.source { display:flex; flex-wrap:wrap; align-items:end; gap:18px; margin:16px 0; }
   label { display:grid; gap:6px; font-size:14px; font-weight:bold; }
   select { min-height:42px; width:100%; border:1px solid #a7b9c9; border-radius:7px; padding:7px 28px 7px 10px; background:#fff; font:inherit; color:var(--ink); }
-  .source { align-items:center; padding:13px 16px; background:var(--paper); border-radius:9px; }
-  .source canvas { width:min(180px,100%); height:auto; display:block; image-rendering:pixelated; border-radius:4px; }
+  .source { align-items:center; padding:16px; background:var(--paper); border-radius:9px; }
+  .pixel-grid { position:relative; width:min(320px,100%); }
+  .source canvas { width:100%; height:auto; display:block; image-rendering:pixelated; border-radius:4px; cursor:crosshair; }
+  .pixel-marker { position:absolute; pointer-events:none; box-shadow:0 0 0 1px #101920,0 0 0 3px #ffe075; }
+  .pixel-editor { flex:1 1 280px; min-width:0; }
+  .pixel-controls { display:grid; grid-template-columns:minmax(0,1fr) 86px; gap:10px; align-items:end; margin:9px 0; max-width:420px; }
+  .pixel-controls input[type=range] { width:100%; min-height:39px; margin:0; accent-color:var(--blue); }
+  .pixel-controls input[type=number] { width:100%; min-width:0; min-height:39px; padding:5px 7px; border:1px solid #a7b9c9; border-radius:5px; font:inherit; color:var(--ink); }
+  .pixel-controls input:invalid { border-color:#a12835; }
+  .pixel-actions { display:flex; flex-wrap:wrap; gap:7px 16px; align-items:center; }
+  .pixel-actions button { padding:6px 9px; border:1px solid #a7b9c9; border-radius:5px; background:#fff; color:var(--ink); font:inherit; cursor:pointer; }
+  .pixel-actions button:disabled { opacity:.5; cursor:default; }
+  .pixel-actions a { color:var(--blue); font-weight:bold; }
+  .pixel-effect { color:#155d5b; font-size:14px; margin-top:5px; }
   .source small { display:block; color:var(--muted); }
   .pair { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
   figure { margin:0; min-width:0; }
@@ -32,14 +44,50 @@
   .colorbar { height:8px; border-radius:4px; margin:12px 0 4px; background:linear-gradient(90deg,#faf5e8,#126c72); }
   details { margin-top:15px; }
   summary { color:var(--blue); font-weight:bold; cursor:pointer; }
+  .section-link { display:inline-block; color:var(--blue); margin-top:10px; font-weight:bold; }
+  .section-link + .section-link { margin-left:18px; }
+  .resize-layout { display:grid; grid-template-columns:minmax(0,2fr) minmax(230px,1fr); gap:20px; margin-top:16px; }
+  .resize-frame { display:grid; place-items:center; aspect-ratio:12/7; overflow:hidden; background:#edf3f8; border:1px solid var(--line); border-radius:9px; }
+  .resize-frame canvas { display:block; height:auto; image-rendering:pixelated; box-shadow:0 0 0 1px #92a6b7; }
+  .resize-settings { display:grid; gap:9px; align-content:start; }
+  .resize-stage { margin-top:7px; font-size:16px; color:var(--blue); font-weight:bold; }
+  .resize-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:11px; }
+  .resize-actions button,.resize-stops button { color:var(--blue); border:1px solid #a7b9c9; border-radius:6px; padding:7px 11px; background:#fff; font:inherit; cursor:pointer; }
+  .resize-actions button:first-child { color:#fff; background:var(--blue); border-color:var(--blue); font-weight:bold; }
+  .resize-track { margin-top:14px; }
+  .resize-track input { width:100%; margin:0; accent-color:var(--blue); }
+  .resize-stops { display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px; margin-top:6px; }
+  .resize-stops button { padding:4px 7px; font-size:13px; }
   table { border-collapse:collapse; width:100%; margin-top:12px; font-size:14px; font-variant-numeric:tabular-nums; }
   th,td { padding:7px 10px; border-bottom:1px solid var(--line); text-align:right; }
   th { background:var(--paper); }
   .table-wrap { overflow-x:auto; }
+  .matrix-samples { display:grid; grid-template-columns:repeat(auto-fit,minmax(65px,1fr)); gap:8px; }
+  .matrix-samples input { min-width:0; width:100%; min-height:39px; padding:5px 7px; border:1px solid #a7b9c9; border-radius:5px; font:inherit; color:var(--ink); }
+  .matrix-samples input:invalid { border-color:#a12835; }
+  .matrix-samples .linked-pixel input { border:2px solid #9b6d00; background:#fff5d5; }
+  .matrix-linked-slider { max-width:320px; margin-top:8px; }
+  .matrix-linked-slider input { width:100%; min-height:35px; margin:0; accent-color:var(--blue); }
+  .matrix-actions { display:flex; flex-wrap:wrap; gap:8px; margin:15px 0 7px; }
+  .matrix-actions button { min-height:42px; padding:7px 12px; border:1px solid #a7b9c9; border-radius:6px; background:#fff; color:var(--ink); font:inherit; font-weight:bold; cursor:pointer; }
+  .matrix-actions button:first-child { color:#fff; background:var(--blue); border-color:var(--blue); }
+  .matrix-actions button:disabled { opacity:.5; cursor:default; }
+  .matrix-table { min-width:760px; white-space:nowrap; }
+  .matrix-table th,.matrix-table td { padding:7px 8px; }
+  .matrix-table th:first-child { text-align:left; }
+  .matrix-table .matrix-zero { color:#657889; }
+  .matrix-table .matrix-vector { border-left:1px solid var(--line); }
+  .matrix-table .matrix-current { background:#eaf4fb; }
+  .matrix-table .matrix-current .matrix-active { color:#0b405e; background:#c8e5f6; font-weight:bold; }
+  .matrix-math { margin-top:13px; padding:12px; background:var(--paper); border-left:3px solid var(--blue); overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+  .matrix-math p + p { margin-top:5px; }
+  #matrix-input-error { color:#9b2430; }
+  :focus-visible { outline:2px solid var(--blue); outline-offset:2px; }
   @media (max-width:630px) {
     main { width:calc(100% - 22px); padding-top:15px; }
     section { padding:15px; }
     .pair { grid-template-columns:1fr; }
+    .resize-layout { grid-template-columns:1fr; }
     .controls label { flex:1 1 160px; }
   }
 </style>
@@ -50,6 +98,8 @@
     <p class="kicker">PHƯƠNG PHÁP TÍNH · MỐC NGÀY 14</p>
     <h1>Phóng to ảnh số</h1>
     <p class="intro">Đổi phương pháp trên cùng đầu vào để quan sát biên và chi tiết. Đặt mức sai lệch cho phép để so sánh spline dùng Gauss–Seidel với spline dùng Thomas.</p>
+    <a class="section-link" href="#resize-title">Chạy toàn ảnh</a>
+    <a class="section-link" href="#pixel-editor-title">Thử chỉnh một pixel</a>
   </header>
   <section aria-labelledby="image-title">
     <h2 id="image-title">So sánh ảnh phóng</h2>
@@ -58,22 +108,124 @@
       <label>Mức phóng <select id="scale"><option value="2">2×</option><option value="4" selected>4×</option></select></label>
     </div>
     <div class="source">
-      <canvas id="input-canvas" role="img" aria-label="Ảnh nhỏ dùng chung làm đầu vào"></canvas>
-      <div><h3>Ảnh đầu vào chung</h3><p id="dimensions" aria-live="polite"></p><small>Mỗi pixel là trung bình một khối trên ảnh tham chiếu.</small></div>
+      <div class="pixel-grid">
+        <canvas id="input-canvas" tabindex="0" aria-describedby="pixel-help" aria-label="Ảnh nhỏ để chọn pixel"></canvas>
+        <span id="pixel-marker" class="pixel-marker" aria-hidden="true"></span>
+      </div>
+      <div class="pixel-editor">
+        <h3 id="pixel-editor-title">Chỉnh pixel trên ảnh đầu vào</h3>
+        <p id="dimensions"></p>
+        <small id="pixel-help">Bấm lên ảnh hoặc dùng phím mũi tên để chọn điểm. Chọn điểm khác sẽ khôi phục pixel vừa chỉnh.</small>
+        <p id="pixel-position" class="metric"></p>
+        <div class="pixel-controls">
+          <label>Kéo mức xám <input type="range" id="pixel-slider" min="0" max="255" step="any"></label>
+          <label>Giá trị <input type="number" id="pixel-value" min="0" max="255" step="any" required></label>
+        </div>
+        <div class="pixel-actions">
+          <button type="button" id="pixel-reset">Trả về giá trị gốc</button>
+          <a href="#matrix-title" id="pixel-matrix-link">Xem hệ spline quanh pixel</a>
+        </div>
+      </div>
     </div>
     <div class="pair">
       <figure>
         <label>Phương pháp bên trái <select id="left-method"></select></label>
         <canvas id="left-canvas" role="img" aria-label="Kết quả bên trái"></canvas>
-        <figcaption><p class="metric" id="left-metric" aria-live="polite"></p><p class="method" id="left-description"></p></figcaption>
+        <figcaption><p class="metric" id="left-metric" aria-live="polite"></p><p class="method" id="left-description"></p><p id="left-pixel-effect" class="pixel-effect" hidden></p></figcaption>
       </figure>
       <figure>
         <label>Phương pháp bên phải <select id="right-method"></select></label>
         <canvas id="right-canvas" role="img" aria-label="Kết quả bên phải"></canvas>
-        <figcaption><p class="metric" id="right-metric" aria-live="polite"></p><p class="method" id="right-description"></p></figcaption>
+        <figcaption><p class="metric" id="right-metric" aria-live="polite"></p><p class="method" id="right-description"></p><p id="right-pixel-effect" class="pixel-effect" hidden></p></figcaption>
       </figure>
     </div>
     <p class="note">MAE tính sau khi chặn và làm tròn về ảnh 8 bit, so với ảnh tham chiếu cùng kích thước.</p>
+  </section>
+  <section aria-labelledby="resize-title">
+    <h2 id="resize-title">Thu nhỏ và phóng lại toàn ảnh</h2>
+    <p class="intro">Chạy từ ảnh mẫu đến ảnh nhỏ rồi phóng lại. Mỗi khung hình tính lại mức xám trên lưới pixel có kích thước đang hiển thị.</p>
+    <div class="resize-layout">
+      <div>
+        <div class="resize-frame">
+          <canvas id="resize-canvas" role="img" aria-label="Ảnh theo tiến trình thu nhỏ và phóng lại"></canvas>
+        </div>
+        <label class="resize-track">Tiến trình
+          <input type="range" id="resize-progress" min="0" max="200" step="1" value="0">
+        </label>
+        <div class="resize-stops" role="group" aria-label="Các mốc tiến trình">
+          <button type="button" data-resize-stop="0">Ảnh gốc</button>
+          <button type="button" data-resize-stop="100">Ảnh nhỏ nhất</button>
+          <button type="button" data-resize-stop="200">Ảnh phóng lại</button>
+        </div>
+      </div>
+      <div class="resize-settings">
+        <label>Ảnh mẫu <select id="resize-sample"></select></label>
+        <label>Mức thu nhỏ
+          <select id="resize-factor">
+            <option value="2">Còn 1/2 mỗi chiều</option>
+            <option value="4" selected>Còn 1/4 mỗi chiều</option>
+          </select>
+        </label>
+        <label>Cách phóng lại <select id="resize-method"></select></label>
+        <p id="resize-stage" class="resize-stage"></p>
+        <p id="resize-dimensions" class="metric"></p>
+        <p id="resize-mae" class="note" hidden></p>
+        <div class="resize-actions">
+          <button type="button" id="resize-play">Chạy</button>
+        </div>
+      </div>
+    </div>
+    <p class="note">Lượt thu nhỏ lấy trung bình theo diện tích. Lượt phóng lại nội suy từ ảnh nhỏ nhất để mọi khung hình dùng chung đầu vào.</p>
+  </section>
+  <section aria-labelledby="matrix-title">
+    <h2 id="matrix-title">Ma trận spline từng bước</h2>
+    <p class="intro">Chỉnh 8 mẫu mức xám để xem vế phải b của hệ A M = b thay đổi. Mỗi bước cập nhật một ẩn Mᵢ, là đạo hàm cấp hai tại một nút trong. Spline trên đoạn này đặt M₀ = M₇ = 0.</p>
+    <div class="controls">
+      <label>Dãy mẫu
+        <select id="matrix-preset">
+          <option value="edge">Đoạn qua biên thẳng</option>
+          <option value="texture">Đoạn qua hoa văn</option>
+          <option value="flat">Dãy hằng 128</option>
+          <option value="pixel">Đoạn chứa pixel trên ảnh đầu vào</option>
+          <option value="custom" disabled>Dãy chỉnh tay</option>
+        </select>
+      </label>
+      <label>Sai lệch spline cho phép δ
+        <select id="matrix-delta">
+          <option value="1">1 mức xám</option>
+          <option value="0.1" selected>0,1 mức xám</option>
+          <option value="0.01">0,01 mức xám</option>
+        </select>
+      </label>
+    </div>
+    <div id="matrix-linked-controls" hidden>
+      <p id="matrix-linked-note" class="note"></p>
+      <label class="matrix-linked-slider">Mức xám của pixel đã chọn
+        <input type="range" id="matrix-pixel-slider" min="0" max="255" step="any">
+      </label>
+      <a class="section-link" href="#image-title">Xem ảnh phóng</a>
+    </div>
+    <div id="matrix-samples" class="matrix-samples" role="group" aria-label="Tám mẫu mức xám"></div>
+    <p id="matrix-input-error" class="note" role="status" hidden>Điền đủ 8 mẫu, mỗi mẫu từ 0 đến 255. Bảng đang giữ dãy hợp lệ gần nhất.</p>
+    <div class="matrix-actions">
+      <button type="button" id="matrix-step">Cập nhật một ẩn</button>
+      <button type="button" id="matrix-sweep">Quét hết vòng</button>
+      <button type="button" id="matrix-play">Chạy tự động</button>
+      <button type="button" id="matrix-reset">Về vòng 0</button>
+    </div>
+    <p id="matrix-status" class="metric" role="status"></p>
+    <p id="matrix-summary" class="note"></p>
+    <div class="matrix-math">
+      <p id="matrix-rhs-equation"></p>
+      <p id="matrix-update-equation"></p>
+    </div>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="Hệ spline và các giá trị theo từng nút">
+      <table class="matrix-table" aria-label="Ma trận A, vế phải, nghiệm Gauss–Seidel, nghiệm Thomas và phần dư">
+        <thead id="matrix-head"></thead>
+        <tbody id="matrix-body"></tbody>
+      </table>
+    </div>
+    <p class="note">Hàng tô màu ứng với phép tính đang hiển thị. Phần dư r = b − A M̃ được cập nhật sau từng bước, còn điều kiện dừng được kiểm tra ở vòng 0 và cuối mỗi vòng.</p>
   </section>
   <section aria-labelledby="solver-title">
     <h2 id="solver-title">Giải hệ spline trên một hàng pixel</h2>
@@ -222,6 +374,43 @@ export function reduceByArea(image, scale) {
   return { width, height, pixels };
 }
 
+// Measure overlap in integer units. A source pixel spans outputLength units.
+function areaSpans(inputLength, outputLength) {
+  return Array.from({ length: outputLength }, (_, position) => {
+    const start = position * inputLength, end = start + inputLength;
+    const first = Math.floor(start / outputLength);
+    const last = Math.ceil(end / outputLength);
+    const overlaps = Array.from({ length: last - first }, (_, k) => {
+      const pixelStart = (first + k) * outputLength;
+      return Math.min(end, pixelStart + outputLength) - Math.max(start, pixelStart);
+    });
+    return { first, overlaps };
+  });
+}
+
+export function resizeByArea(image, width, height) {
+  if (![width, height].every(size => Number.isInteger(size) && size > 0)
+      || width > image.width || height > image.height) {
+    throw new RangeError('Area reduction requires positive dimensions within the input image');
+  }
+  const columns = areaSpans(image.width, width), rows = areaSpans(image.height, height);
+  const pixels = new Float64Array(width * height);
+  const area = image.width * image.height;
+  for (const [y, vertical] of rows.entries()) {
+    for (const [x, horizontal] of columns.entries()) {
+      let sum = 0;
+      for (const [j, yOverlap] of vertical.overlaps.entries()) {
+        const start = (vertical.first + j) * image.width + horizontal.first;
+        for (const [i, xOverlap] of horizontal.overlaps.entries()) {
+          sum += image.pixels[start + i] * xOverlap * yOverlap;
+        }
+      }
+      pixels[y * width + x] = sum / area;
+    }
+  }
+  return { width, height, pixels };
+}
+
 export function sourceCoordinate(position, scale, length) {
   return clamp((position + 0.5) / scale - 0.5, 0, length - 1);
 }
@@ -249,14 +438,22 @@ export function solveThomas(rhs) {
   return solution;
 }
 
+export function splineResidualAt(rhs, solution, i) {
+  const computed = 4 * solution[i] + (solution[i - 1] ?? 0) + (solution[i + 1] ?? 0);
+  return rhs[i] - computed;
+}
+
 export function residualInfinity(rhs, solution) {
   if (rhs.length !== solution.length) throw new RangeError('The system and solution sizes differ');
   let maximum = 0;
   for (let i = 0; i < rhs.length; i++) {
-    const computed = 4 * solution[i] + (solution[i - 1] ?? 0) + (solution[i + 1] ?? 0);
-    maximum = Math.max(maximum, Math.abs(rhs[i] - computed));
+    maximum = Math.max(maximum, Math.abs(splineResidualAt(rhs, solution, i)));
   }
   return maximum;
+}
+
+export function gaussSeidelValue(rhsValue, left, right) {
+  return (rhsValue - left - right) / 4;
 }
 
 export function solveGaussSeidel(rhs, {
@@ -272,7 +469,7 @@ export function solveGaussSeidel(rhs, {
   while (residual > tolerance && sweep < maxSweeps) {
     for (let i = 0; i < rhs.length; i++) {
       // Left neighbor already belongs to the new sweep. Right neighbor is still old.
-      solution[i] = (rhs[i] - (solution[i - 1] ?? 0) - (solution[i + 1] ?? 0)) / 4;
+      solution[i] = gaussSeidelValue(rhs[i], solution[i - 1] ?? 0, solution[i + 1] ?? 0);
     }
     residual = residualInfinity(rhs, solution);
     sweep++;
@@ -344,8 +541,9 @@ const kernels = {
   lanczos: { radius: 3, weight: x => Math.abs(x) < 3 ? sinc(x) * sinc(x / 3) : 0 },
 };
 
-function lineEvaluator(length, scale, method, solveMoments) {
-  const positions = Array.from({ length: length * scale }, (_, i) => sourceCoordinate(i, scale, length));
+function lineEvaluator(length, outputLength, method, solveMoments) {
+  const scale = outputLength / length;
+  const positions = Array.from({ length: outputLength }, (_, i) => sourceCoordinate(i, scale, length));
   if (method === 'spline') {
     return samples => {
       const moments = padNaturalMoments(solveMoments(splineRhs(samples)), samples.length);
@@ -385,10 +583,20 @@ function enlargeSeparable(image, scale, method, solveHorizontal, solveVertical) 
   if (!Number.isInteger(scale) || scale < 1 || image.width < 1 || image.height < 1) {
     throw new RangeError('Invalid image shape or integer scale');
   }
-  const width = image.width * scale, height = image.height * scale;
+  return resizeSeparable(image, image.width * scale, image.height * scale, method, solveHorizontal, solveVertical);
+}
+
+export function resizeImage(image, width, height, method) {
+  if (![image.width, image.height, width, height].every(size => Number.isInteger(size) && size > 0)) {
+    throw new RangeError('Image dimensions must be positive integers');
+  }
+  return resizeSeparable(image, width, height, method, solveThomas, solveThomas);
+}
+
+function resizeSeparable(image, width, height, method, solveHorizontal, solveVertical) {
   const horizontal = new Float64Array(width * image.height);
-  const row = lineEvaluator(image.width, scale, method, solveHorizontal);
-  const column = lineEvaluator(image.height, scale, method, solveVertical);
+  const row = lineEvaluator(image.width, width, method, solveHorizontal);
+  const column = lineEvaluator(image.height, height, method, solveVertical);
   for (let y = 0; y < image.height; y++) {
     const start = y * image.width;
     horizontal.set(row(image.pixels.subarray(start, start + image.width)), y * width);
@@ -546,23 +754,126 @@ function paint(canvas, width, height, pixels, name) {
   context.putImageData(data, 0, 0);
 }
 
-function compareImages() {
-  const reference = getReference(sample.value);
-  const scale = Number(scaleSelect.value);
-  const input = reduceByArea(reference, scale);
-  paint(byId('input-canvas'), input.width, input.height, quantizePixels(input.pixels), 'Ảnh nhỏ đầu vào');
-  byId('dimensions').textContent = `${input.width} × ${input.height} px → ${reference.width} × ${reference.height} px`;
-  const cache = new Map([['original', reference.pixels]]);
-  for (const [side, select] of Object.entries(methodSelects)) {
-    const method = select.value;
-    if (!cache.has(method)) cache.set(method, quantizePixels(enlarge(input, scale, method).pixels));
-    const pixels = cache.get(method);
-    paint(byId(side + '-canvas'), reference.width, reference.height, pixels, METHOD_NAMES[method]);
-    byId(side + '-metric').textContent = method === 'original' ? 'Mốc so sánh'
-      : `MAE ${number.format(imageMae(pixels, reference.pixels))} mức xám`;
-    byId(side + '-description').textContent = methodDescription[method];
+function setupPixelComparison() {
+  const canvas = byId('input-canvas'), marker = byId('pixel-marker');
+  const slider = byId('pixel-slider'), valueInput = byId('pixel-value');
+  const reset = byId('pixel-reset');
+  let reference, scale, input, originalInput, originalOutputs, x, y;
+  let frame = null;
+  const selectedIndex = () => y * input.width + x;
+  const isEdited = () => input.pixels[selectedIndex()] !== originalInput.pixels[selectedIndex()];
+  const renderedPixels = (image, method) => quantizePixels(enlarge(image, scale, method).pixels);
+
+  function renderImages() {
+    if (frame !== null) cancelAnimationFrame(frame);
+    frame = null;
+    paint(canvas, input.width, input.height, quantizePixels(input.pixels), 'Ảnh nhỏ để chọn pixel');
+    const edited = isEdited();
+    const currentOutputs = new Map();
+    for (const [side, select] of Object.entries(methodSelects)) {
+      const method = select.value;
+      if (!originalOutputs.has(method)) originalOutputs.set(method, renderedPixels(originalInput, method));
+      const before = originalOutputs.get(method);
+      const compareEdit = edited && method !== 'original';
+      if (compareEdit && !currentOutputs.has(method)) currentOutputs.set(method, renderedPixels(input, method));
+      const pixels = compareEdit ? currentOutputs.get(method) : before;
+      paint(byId(side + '-canvas'), reference.width, reference.height, pixels, METHOD_NAMES[method]);
+      byId(side + '-metric').textContent = method === 'original' ? 'Mốc so sánh'
+        : `MAE ${number.format(imageMae(pixels, reference.pixels))} mức xám`;
+      byId(side + '-description').textContent = methodDescription[method];
+      const effect = byId(side + '-pixel-effect');
+      effect.hidden = !compareEdit;
+      if (compareEdit) {
+        let changed = 0, maximum = 0;
+        for (let i = 0; i < pixels.length; i++) {
+          const difference = Math.abs(pixels[i] - before[i]);
+          changed += difference !== 0;
+          maximum = Math.max(maximum, difference);
+        }
+        effect.textContent = `Sau làm tròn · ${number.format(changed)} pixel đầu ra thay đổi`
+          + ` · Chênh lớn nhất ${maximum} mức xám so với trước khi chỉnh.`;
+      }
+    }
   }
+
+  function reflectSelection(updateNumber = true) {
+    const index = selectedIndex();
+    const original = originalInput.pixels[index], current = input.pixels[index];
+    marker.style.left = `${100 * x / input.width}%`;
+    marker.style.top = `${100 * y / input.height}%`;
+    marker.style.width = `${100 / input.width}%`;
+    marker.style.height = `${100 / input.height}%`;
+    slider.value = current;
+    if (updateNumber) valueInput.value = current;
+    reset.disabled = !isEdited();
+    byId('pixel-position').textContent = `Pixel (${x}, ${y}) · Gốc ${number.format(original)} → ${number.format(current)}`;
+    canvas.dispatchEvent(new Event('input-pixel-change'));
+  }
+
+  function initialize() {
+    reference = getReference(sample.value);
+    scale = Number(scaleSelect.value);
+    originalInput = reduceByArea(reference, scale);
+    input = { ...originalInput, pixels: originalInput.pixels.slice() };
+    originalOutputs = new Map([['original', reference.pixels]]);
+    x = Math.floor(input.width / 2);
+    y = Math.floor(input.height / 4);
+    byId('dimensions').textContent = `${input.width} × ${input.height} px → ${reference.width} × ${reference.height} px`;
+    reflectSelection();
+    renderImages();
+  }
+
+  function selectPixel(column, row) {
+    const nextX = clamp(column, 0, input.width - 1);
+    const nextY = clamp(row, 0, input.height - 1);
+    if (nextX === x && nextY === y) return;
+    input.pixels[selectedIndex()] = originalInput.pixels[selectedIndex()];
+    x = nextX;
+    y = nextY;
+    reflectSelection();
+    renderImages();
+  }
+
+  function changeValue(value, updateNumber = true) {
+    if (input.pixels[selectedIndex()] === value) return;
+    input.pixels[selectedIndex()] = value;
+    reflectSelection(updateNumber);
+    if (frame === null) frame = requestAnimationFrame(renderImages);
+  }
+
+  canvas.addEventListener('click', event => {
+    const rect = canvas.getBoundingClientRect();
+    selectPixel(Math.floor((event.clientX - rect.left) * input.width / rect.width),
+      Math.floor((event.clientY - rect.top) * input.height / rect.height));
+  });
+  const directions = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+  canvas.addEventListener('keydown', event => {
+    const direction = directions[event.key];
+    if (!direction) return;
+    event.preventDefault();
+    selectPixel(x + direction[0], y + direction[1]);
+  });
+  slider.addEventListener('input', () => changeValue(Math.round(slider.valueAsNumber)));
+  valueInput.addEventListener('input', () => {
+    if (valueInput.validity.valid) changeValue(valueInput.valueAsNumber, false);
+  });
+  valueInput.addEventListener('blur', () => { valueInput.value = input.pixels[selectedIndex()]; });
+  reset.addEventListener('click', () => changeValue(originalInput.pixels[selectedIndex()]));
+  for (const select of [sample, scaleSelect]) select.addEventListener('change', initialize);
+  for (const select of Object.values(methodSelects)) select.addEventListener('change', renderImages);
+  initialize();
+
+  return {
+    changeValue,
+    rowWindow(length) {
+      const column = clamp(x - Math.floor(length / 2), 0, input.width - length);
+      const start = y * input.width + column;
+      return { y, column, index: x - column, samples: input.pixels.subarray(start, start + length) };
+    },
+  };
 }
+
+const pixelComparison = setupPixelComparison();
 
 function compareRow() {
   const kind = byId('solver-case').value;
@@ -624,12 +935,309 @@ function compareWholeImage() {
   byId('map-scale').textContent = `Thang màu tự chỉnh từ 0 đến ${sci(maximum)} mức xám trước làm tròn.`;
 }
 
-for (const select of [sample, scaleSelect, ...Object.values(methodSelects)]) select.addEventListener('change', compareImages);
 for (const id of ['solver-case', 'row-delta']) byId(id).addEventListener('change', compareRow);
 for (const id of ['image-case', 'image-delta', 'image-share']) byId(id).addEventListener('change', compareWholeImage);
-compareImages();
 compareRow();
 compareWholeImage();
+
+// Runs in the same offline module as the spline core and the image comparison.
+function setupMatrixDemo() {
+  const subscripts = '₀₁₂₃₄₅₆₇';
+  const sampleCount = subscripts.length;
+  const unknowns = sampleCount - 2;
+  const preset = byId('matrix-preset'), delta = byId('matrix-delta');
+  const linkedControls = byId('matrix-linked-controls'), linkedSlider = byId('matrix-pixel-slider');
+  const stepButton = byId('matrix-step'), sweepButton = byId('matrix-sweep');
+  const playButton = byId('matrix-play'), resetButton = byId('matrix-reset');
+  const format = value => value !== 0 && Math.abs(value) < 0.001 ? sci(value) : number.format(value);
+  const sampleInputs = Array.from(subscripts, subscript => {
+    const label = document.createElement('label');
+    label.textContent = 'f' + subscript;
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.min = '0';
+    input.max = '255';
+    input.step = 'any';
+    input.required = true;
+    label.append(input);
+    byId('matrix-samples').append(label);
+    return input;
+  });
+
+  const heading = byId('matrix-head').insertRow();
+  const headings = ['Hệ số A', ...Array.from(subscripts.slice(1, -1), sub => 'M' + sub),
+    'Vế phải b', 'M̃ hiện tại', 'M Thomas', 'Phần dư r'];
+  for (const label of headings) {
+    const cell = document.createElement('th');
+    cell.scope = 'col';
+    cell.textContent = label;
+    heading.append(cell);
+  }
+  const rows = Array.from({ length: unknowns }, (_, i) => {
+    const row = byId('matrix-body').insertRow();
+    const label = document.createElement('th');
+    label.scope = 'row';
+    label.textContent = 'Hàng ' + (i + 1);
+    row.append(label);
+    for (let j = 0; j < unknowns; j++) {
+      const cell = row.insertCell();
+      const distance = Math.abs(i - j);
+      cell.textContent = distance === 0 ? '4' : distance === 1 ? '1' : '0';
+      cell.className = distance <= 1 ? 'matrix-active' : 'matrix-zero';
+    }
+    const values = Array.from({ length: 4 }, () => row.insertCell());
+    values[0].classList.add('matrix-vector');
+    values[1].classList.add('matrix-active');
+    return { row, values };
+  });
+
+  let samples, rhs, thomas, estimate, tolerance, next, sweeps, residual, lastStep;
+  let timer = null, valid = true;
+  const atStop = () => next === 0 && (residual <= tolerance || sweeps >= MAX_SWEEPS);
+
+  function stopPlayback() {
+    clearInterval(timer);
+    timer = null;
+  }
+
+  function reset() {
+    stopPlayback();
+    const entered = sampleInputs.map(input => input.valueAsNumber);
+    valid = sampleInputs.every((input, i) => input.validity.valid && Number.isFinite(entered[i]));
+    if (valid) {
+      samples = entered;
+      rhs = splineRhs(samples);
+      thomas = solveThomas(rhs);
+      estimate = new Float64Array(unknowns);
+      tolerance = 16 * Number(delta.value);
+      next = sweeps = 0;
+      residual = residualInfinity(rhs, estimate);
+      lastStep = null;
+    }
+    render();
+  }
+
+  function selectPreset() {
+    const linked = preset.value === 'pixel' ? pixelComparison.rowWindow(sampleCount) : null;
+    linkedControls.hidden = !linked;
+    sampleInputs.forEach((input, i) => {
+      input.readOnly = Boolean(linked);
+      input.parentElement.classList.toggle('linked-pixel', i === linked?.index);
+    });
+    if (linked) {
+      sampleInputs.forEach((input, i) => { input.value = linked.samples[i]; });
+      linkedSlider.value = linked.samples[linked.index];
+      byId('matrix-linked-note').textContent =
+        `Pixel (${linked.column + linked.index}, ${linked.y}) ứng với f${subscripts[linked.index]}. `
+        + 'Hệ dùng điều kiện biên tự nhiên tại hai đầu đoạn 8 mẫu. Sửa pixel sẽ đưa phép lặp về vòng 0.';
+    } else if (preset.value === 'flat') {
+      for (const input of sampleInputs) input.value = '128';
+    } else {
+      const image = reduceByArea(getReference(preset.value), 4);
+      const row = preset.value === 'edge' ? 16 : 28;
+      const start = row * image.width + 45;
+      sampleInputs.forEach((input, i) => { input.value = image.pixels[start + i]; });
+    }
+    reset();
+  }
+
+  function stepOperands() {
+    const i = next;
+    const left = estimate[i - 1] ?? 0;
+    const right = estimate[i + 1] ?? 0;
+    return { i, left, right, value: gaussSeidelValue(rhs[i], left, right) };
+  }
+
+  function advance() {
+    lastStep = stepOperands();
+    estimate[next] = lastStep.value;
+    next++;
+    if (next === unknowns) {
+      next = 0;
+      sweeps++;
+    }
+    residual = residualInfinity(rhs, estimate);
+    if (atStop()) stopPlayback();
+  }
+
+  function render() {
+    const stopped = atStop();
+    const playing = timer !== null;
+    stepButton.disabled = sweepButton.disabled = !valid || stopped || playing;
+    playButton.disabled = !valid || stopped;
+    resetButton.disabled = !valid;
+    playButton.textContent = playing ? 'Tạm dừng' : 'Chạy tự động';
+    byId('matrix-input-error').hidden = valid;
+
+    const active = lastStep ?? (stopped ? null : stepOperands());
+    for (const [i, { row, values }] of rows.entries()) {
+      row.classList.toggle('matrix-current', active?.i === i);
+      const numbers = [rhs[i], estimate[i], thomas[i], splineResidualAt(rhs, estimate, i)];
+      values.forEach((cell, j) => {
+        cell.textContent = format(numbers[j]);
+        cell.title = String(numbers[j]);
+      });
+    }
+    byId('matrix-status').textContent = stopped
+      ? (residual <= tolerance ? `Đạt ngưỡng sau ${sweeps} vòng.` : `Đã quét ${sweeps} vòng và còn trên ngưỡng.`)
+      : `Đã xong ${sweeps} vòng · Tiếp theo cập nhật M${subscripts[next + 1]}.`;
+    byId('matrix-summary').textContent =
+      `‖r‖∞ = ${format(residual)} · Ngưỡng 16δ = ${format(tolerance)} · `
+      + `Chặn spline ‖r‖∞ / 16 = ${format(rowErrorBound(residual))} mức xám.`;
+
+    const i = active?.i ?? 0;
+    const node = subscripts[i + 1];
+    byId('matrix-rhs-equation').textContent = `b${node} = 6(f${subscripts[i]} − 2f${node} + f${subscripts[i + 2]})`
+      + ` = 6(${format(samples[i])} − 2 × ${format(samples[i + 1])} + ${format(samples[i + 2])}) = ${format(rhs[i])}`;
+    byId('matrix-update-equation').textContent = active
+      ? `${lastStep ? 'Vừa tính' : 'Bước kế tiếp'} · M̃${node} = (b${node} − M̃${subscripts[i]} mới − M̃${subscripts[i + 2]} cũ) / 4`
+        + ` = (${format(rhs[i])} − (${format(active.left)}) − (${format(active.right)})) / 4 ≈ ${format(active.value)}`
+      : 'Nghiệm khởi tạo đã đạt ngưỡng phần dư.';
+  }
+
+  preset.addEventListener('change', selectPreset);
+  byId('pixel-matrix-link').addEventListener('click', () => {
+    preset.value = 'pixel';
+    selectPreset();
+  });
+  byId('input-canvas').addEventListener('input-pixel-change', () => {
+    if (preset.value === 'pixel') selectPreset();
+  });
+  linkedSlider.addEventListener('input', () => pixelComparison.changeValue(Math.round(linkedSlider.valueAsNumber)));
+  delta.addEventListener('change', reset);
+  resetButton.addEventListener('click', reset);
+  for (const input of sampleInputs) {
+    input.addEventListener('input', () => {
+      preset.value = 'custom';
+      reset();
+    });
+  }
+  stepButton.addEventListener('click', () => { advance(); render(); });
+  sweepButton.addEventListener('click', () => {
+    do { advance(); } while (next !== 0);
+    render();
+  });
+  playButton.addEventListener('click', () => {
+    if (timer === null) {
+      timer = setInterval(() => { advance(); render(); }, 360);
+    } else {
+      stopPlayback();
+    }
+    render();
+  });
+  selectPreset();
+}
+
+setupMatrixDemo();
+
+// Whole-image animation. Each frame is resampled from the source of its phase.
+function setupResizeDemo() {
+  const sampleSelect = byId('resize-sample'), factorSelect = byId('resize-factor');
+  const methodSelect = byId('resize-method'), track = byId('resize-progress');
+  const canvas = byId('resize-canvas'), playButton = byId('resize-play');
+  const phaseSteps = 100, endStep = 2 * phaseSteps;
+  const millisecondsPerStep = 30, halfwayHold = 600;
+  const phaseDuration = phaseSteps * millisecondsPerStep;
+  let reference, small, step = 0, animationFrame = null, startTime, lastDraw;
+
+  for (const [key, label] of Object.entries(SAMPLE_NAMES)) sampleSelect.add(new Option(label, key));
+  for (const [key, label] of Object.entries(METHOD_NAMES)) {
+    if (key !== 'original') methodSelect.add(new Option(label, key));
+  }
+  methodSelect.value = 'spline';
+
+  function draw(position) {
+    step = position;
+    const shrinking = step <= phaseSteps;
+    const proportion = Math.abs(step - phaseSteps) / phaseSteps;
+    const width = Math.round(small.width + proportion * (reference.width - small.width));
+    const height = Math.round(small.height + proportion * (reference.height - small.height));
+    let image;
+    let stage;
+    if (step === 0) {
+      image = reference;
+      stage = 'Ảnh gốc';
+    } else if (step === phaseSteps) {
+      image = small;
+      stage = 'Ảnh nhỏ nhất';
+    } else if (shrinking) {
+      image = resizeByArea(reference, width, height);
+      stage = 'Thu nhỏ theo diện tích';
+    } else {
+      image = resizeImage(small, width, height, methodSelect.value);
+      stage = step === endStep ? 'Ảnh phóng lại' : 'Phóng lại bằng nội suy';
+    }
+    const pixels = step === 0 ? image.pixels : quantizePixels(image.pixels);
+    const dimensions = `${image.width} × ${image.height} px`;
+    paint(canvas, image.width, image.height, pixels, `${stage}, ${dimensions}`);
+    canvas.style.width = `${100 * image.width / reference.width}%`;
+    byId('resize-stage').textContent = stage;
+    byId('resize-dimensions').textContent = dimensions;
+    track.value = step;
+    track.setAttribute('aria-valuetext', `${stage}, ${dimensions}`);
+    const mae = byId('resize-mae');
+    mae.hidden = step !== endStep;
+    if (step === endStep) {
+      mae.textContent = `MAE so với ảnh gốc ${number.format(imageMae(pixels, reference.pixels))} mức xám.`;
+    }
+  }
+
+  function updatePlayLabel() {
+    playButton.textContent = animationFrame !== null ? 'Tạm dừng'
+      : step === endStep ? 'Chạy lại' : step === 0 ? 'Chạy' : 'Tiếp tục';
+  }
+
+  function pause() {
+    if (animationFrame !== null) cancelAnimationFrame(animationFrame);
+    animationFrame = null;
+    updatePlayLabel();
+  }
+
+  function seek(position) {
+    pause();
+    draw(position);
+    updatePlayLabel();
+  }
+
+  function tick(now) {
+    const elapsed = now - startTime;
+    const active = elapsed - clamp(elapsed - phaseDuration, 0, halfwayHold);
+    const position = clamp(Math.floor(active / millisecondsPerStep), 0, endStep);
+    if (position !== step && (now - lastDraw >= 40 || position === phaseSteps || position === endStep)) {
+      draw(position);
+      lastDraw = now;
+    }
+    if (position < endStep) animationFrame = requestAnimationFrame(tick);
+    else pause();
+  }
+
+  function resetSource() {
+    reference = getReference(sampleSelect.value);
+    small = reduceByArea(reference, Number(factorSelect.value));
+    seek(0);
+  }
+
+  playButton.addEventListener('click', () => {
+    if (animationFrame !== null) {
+      pause();
+      return;
+    }
+    if (step === endStep) draw(0);
+    startTime = performance.now() - step * millisecondsPerStep - (step > phaseSteps ? halfwayHold : 0);
+    lastDraw = -Infinity;
+    animationFrame = requestAnimationFrame(tick);
+    updatePlayLabel();
+  });
+  track.addEventListener('input', () => seek(track.valueAsNumber));
+  for (const button of document.querySelectorAll('[data-resize-stop]')) {
+    button.addEventListener('click', () => seek(Number(button.dataset.resizeStop)));
+  }
+  for (const select of [sampleSelect, factorSelect]) select.addEventListener('change', resetSource);
+  methodSelect.addEventListener('change', () => draw(step));
+  resetSource();
+}
+
+setupResizeDemo();
 
 </script>
 </body>

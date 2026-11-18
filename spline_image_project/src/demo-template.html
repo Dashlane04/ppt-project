@@ -20,8 +20,20 @@
   .controls,.source { display:flex; flex-wrap:wrap; align-items:end; gap:18px; margin:16px 0; }
   label { display:grid; gap:6px; font-size:14px; font-weight:bold; }
   select { min-height:42px; width:100%; border:1px solid #a7b9c9; border-radius:7px; padding:7px 28px 7px 10px; background:#fff; font:inherit; color:var(--ink); }
-  .source { align-items:center; padding:13px 16px; background:var(--paper); border-radius:9px; }
-  .source canvas { width:min(180px,100%); height:auto; display:block; image-rendering:pixelated; border-radius:4px; }
+  .source { align-items:center; padding:16px; background:var(--paper); border-radius:9px; }
+  .pixel-grid { position:relative; width:min(320px,100%); }
+  .source canvas { width:100%; height:auto; display:block; image-rendering:pixelated; border-radius:4px; cursor:crosshair; }
+  .pixel-marker { position:absolute; pointer-events:none; box-shadow:0 0 0 1px #101920,0 0 0 3px #ffe075; }
+  .pixel-editor { flex:1 1 280px; min-width:0; }
+  .pixel-controls { display:grid; grid-template-columns:minmax(0,1fr) 86px; gap:10px; align-items:end; margin:9px 0; max-width:420px; }
+  .pixel-controls input[type=range] { width:100%; min-height:39px; margin:0; accent-color:var(--blue); }
+  .pixel-controls input[type=number] { width:100%; min-width:0; min-height:39px; padding:5px 7px; border:1px solid #a7b9c9; border-radius:5px; font:inherit; color:var(--ink); }
+  .pixel-controls input:invalid { border-color:#a12835; }
+  .pixel-actions { display:flex; flex-wrap:wrap; gap:7px 16px; align-items:center; }
+  .pixel-actions button { padding:6px 9px; border:1px solid #a7b9c9; border-radius:5px; background:#fff; color:var(--ink); font:inherit; cursor:pointer; }
+  .pixel-actions button:disabled { opacity:.5; cursor:default; }
+  .pixel-actions a { color:var(--blue); font-weight:bold; }
+  .pixel-effect { color:#155d5b; font-size:14px; margin-top:5px; }
   .source small { display:block; color:var(--muted); }
   .pair { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
   figure { margin:0; min-width:0; }
@@ -32,14 +44,50 @@
   .colorbar { height:8px; border-radius:4px; margin:12px 0 4px; background:linear-gradient(90deg,#faf5e8,#126c72); }
   details { margin-top:15px; }
   summary { color:var(--blue); font-weight:bold; cursor:pointer; }
+  .section-link { display:inline-block; color:var(--blue); margin-top:10px; font-weight:bold; }
+  .section-link + .section-link { margin-left:18px; }
+  .resize-layout { display:grid; grid-template-columns:minmax(0,2fr) minmax(230px,1fr); gap:20px; margin-top:16px; }
+  .resize-frame { display:grid; place-items:center; aspect-ratio:12/7; overflow:hidden; background:#edf3f8; border:1px solid var(--line); border-radius:9px; }
+  .resize-frame canvas { display:block; height:auto; image-rendering:pixelated; box-shadow:0 0 0 1px #92a6b7; }
+  .resize-settings { display:grid; gap:9px; align-content:start; }
+  .resize-stage { margin-top:7px; font-size:16px; color:var(--blue); font-weight:bold; }
+  .resize-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:11px; }
+  .resize-actions button,.resize-stops button { color:var(--blue); border:1px solid #a7b9c9; border-radius:6px; padding:7px 11px; background:#fff; font:inherit; cursor:pointer; }
+  .resize-actions button:first-child { color:#fff; background:var(--blue); border-color:var(--blue); font-weight:bold; }
+  .resize-track { margin-top:14px; }
+  .resize-track input { width:100%; margin:0; accent-color:var(--blue); }
+  .resize-stops { display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px; margin-top:6px; }
+  .resize-stops button { padding:4px 7px; font-size:13px; }
   table { border-collapse:collapse; width:100%; margin-top:12px; font-size:14px; font-variant-numeric:tabular-nums; }
   th,td { padding:7px 10px; border-bottom:1px solid var(--line); text-align:right; }
   th { background:var(--paper); }
   .table-wrap { overflow-x:auto; }
+  .matrix-samples { display:grid; grid-template-columns:repeat(auto-fit,minmax(65px,1fr)); gap:8px; }
+  .matrix-samples input { min-width:0; width:100%; min-height:39px; padding:5px 7px; border:1px solid #a7b9c9; border-radius:5px; font:inherit; color:var(--ink); }
+  .matrix-samples input:invalid { border-color:#a12835; }
+  .matrix-samples .linked-pixel input { border:2px solid #9b6d00; background:#fff5d5; }
+  .matrix-linked-slider { max-width:320px; margin-top:8px; }
+  .matrix-linked-slider input { width:100%; min-height:35px; margin:0; accent-color:var(--blue); }
+  .matrix-actions { display:flex; flex-wrap:wrap; gap:8px; margin:15px 0 7px; }
+  .matrix-actions button { min-height:42px; padding:7px 12px; border:1px solid #a7b9c9; border-radius:6px; background:#fff; color:var(--ink); font:inherit; font-weight:bold; cursor:pointer; }
+  .matrix-actions button:first-child { color:#fff; background:var(--blue); border-color:var(--blue); }
+  .matrix-actions button:disabled { opacity:.5; cursor:default; }
+  .matrix-table { min-width:760px; white-space:nowrap; }
+  .matrix-table th,.matrix-table td { padding:7px 8px; }
+  .matrix-table th:first-child { text-align:left; }
+  .matrix-table .matrix-zero { color:#657889; }
+  .matrix-table .matrix-vector { border-left:1px solid var(--line); }
+  .matrix-table .matrix-current { background:#eaf4fb; }
+  .matrix-table .matrix-current .matrix-active { color:#0b405e; background:#c8e5f6; font-weight:bold; }
+  .matrix-math { margin-top:13px; padding:12px; background:var(--paper); border-left:3px solid var(--blue); overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+  .matrix-math p + p { margin-top:5px; }
+  #matrix-input-error { color:#9b2430; }
+  :focus-visible { outline:2px solid var(--blue); outline-offset:2px; }
   @media (max-width:630px) {
     main { width:calc(100% - 22px); padding-top:15px; }
     section { padding:15px; }
     .pair { grid-template-columns:1fr; }
+    .resize-layout { grid-template-columns:1fr; }
     .controls label { flex:1 1 160px; }
   }
 </style>
@@ -50,6 +98,8 @@
     <p class="kicker">PHƯƠNG PHÁP TÍNH · MỐC NGÀY 14</p>
     <h1>Phóng to ảnh số</h1>
     <p class="intro">Đổi phương pháp trên cùng đầu vào để quan sát biên và chi tiết. Đặt mức sai lệch cho phép để so sánh spline dùng Gauss–Seidel với spline dùng Thomas.</p>
+    <a class="section-link" href="#resize-title">Chạy toàn ảnh</a>
+    <a class="section-link" href="#pixel-editor-title">Thử chỉnh một pixel</a>
   </header>
   <section aria-labelledby="image-title">
     <h2 id="image-title">So sánh ảnh phóng</h2>
@@ -58,22 +108,124 @@
       <label>Mức phóng <select id="scale"><option value="2">2×</option><option value="4" selected>4×</option></select></label>
     </div>
     <div class="source">
-      <canvas id="input-canvas" role="img" aria-label="Ảnh nhỏ dùng chung làm đầu vào"></canvas>
-      <div><h3>Ảnh đầu vào chung</h3><p id="dimensions" aria-live="polite"></p><small>Mỗi pixel là trung bình một khối trên ảnh tham chiếu.</small></div>
+      <div class="pixel-grid">
+        <canvas id="input-canvas" tabindex="0" aria-describedby="pixel-help" aria-label="Ảnh nhỏ để chọn pixel"></canvas>
+        <span id="pixel-marker" class="pixel-marker" aria-hidden="true"></span>
+      </div>
+      <div class="pixel-editor">
+        <h3 id="pixel-editor-title">Chỉnh pixel trên ảnh đầu vào</h3>
+        <p id="dimensions"></p>
+        <small id="pixel-help">Bấm lên ảnh hoặc dùng phím mũi tên để chọn điểm. Chọn điểm khác sẽ khôi phục pixel vừa chỉnh.</small>
+        <p id="pixel-position" class="metric"></p>
+        <div class="pixel-controls">
+          <label>Kéo mức xám <input type="range" id="pixel-slider" min="0" max="255" step="any"></label>
+          <label>Giá trị <input type="number" id="pixel-value" min="0" max="255" step="any" required></label>
+        </div>
+        <div class="pixel-actions">
+          <button type="button" id="pixel-reset">Trả về giá trị gốc</button>
+          <a href="#matrix-title" id="pixel-matrix-link">Xem hệ spline quanh pixel</a>
+        </div>
+      </div>
     </div>
     <div class="pair">
       <figure>
         <label>Phương pháp bên trái <select id="left-method"></select></label>
         <canvas id="left-canvas" role="img" aria-label="Kết quả bên trái"></canvas>
-        <figcaption><p class="metric" id="left-metric" aria-live="polite"></p><p class="method" id="left-description"></p></figcaption>
+        <figcaption><p class="metric" id="left-metric" aria-live="polite"></p><p class="method" id="left-description"></p><p id="left-pixel-effect" class="pixel-effect" hidden></p></figcaption>
       </figure>
       <figure>
         <label>Phương pháp bên phải <select id="right-method"></select></label>
         <canvas id="right-canvas" role="img" aria-label="Kết quả bên phải"></canvas>
-        <figcaption><p class="metric" id="right-metric" aria-live="polite"></p><p class="method" id="right-description"></p></figcaption>
+        <figcaption><p class="metric" id="right-metric" aria-live="polite"></p><p class="method" id="right-description"></p><p id="right-pixel-effect" class="pixel-effect" hidden></p></figcaption>
       </figure>
     </div>
     <p class="note">MAE tính sau khi chặn và làm tròn về ảnh 8 bit, so với ảnh tham chiếu cùng kích thước.</p>
+  </section>
+  <section aria-labelledby="resize-title">
+    <h2 id="resize-title">Thu nhỏ và phóng lại toàn ảnh</h2>
+    <p class="intro">Chạy từ ảnh mẫu đến ảnh nhỏ rồi phóng lại. Mỗi khung hình tính lại mức xám trên lưới pixel có kích thước đang hiển thị.</p>
+    <div class="resize-layout">
+      <div>
+        <div class="resize-frame">
+          <canvas id="resize-canvas" role="img" aria-label="Ảnh theo tiến trình thu nhỏ và phóng lại"></canvas>
+        </div>
+        <label class="resize-track">Tiến trình
+          <input type="range" id="resize-progress" min="0" max="200" step="1" value="0">
+        </label>
+        <div class="resize-stops" role="group" aria-label="Các mốc tiến trình">
+          <button type="button" data-resize-stop="0">Ảnh gốc</button>
+          <button type="button" data-resize-stop="100">Ảnh nhỏ nhất</button>
+          <button type="button" data-resize-stop="200">Ảnh phóng lại</button>
+        </div>
+      </div>
+      <div class="resize-settings">
+        <label>Ảnh mẫu <select id="resize-sample"></select></label>
+        <label>Mức thu nhỏ
+          <select id="resize-factor">
+            <option value="2">Còn 1/2 mỗi chiều</option>
+            <option value="4" selected>Còn 1/4 mỗi chiều</option>
+          </select>
+        </label>
+        <label>Cách phóng lại <select id="resize-method"></select></label>
+        <p id="resize-stage" class="resize-stage"></p>
+        <p id="resize-dimensions" class="metric"></p>
+        <p id="resize-mae" class="note" hidden></p>
+        <div class="resize-actions">
+          <button type="button" id="resize-play">Chạy</button>
+        </div>
+      </div>
+    </div>
+    <p class="note">Lượt thu nhỏ lấy trung bình theo diện tích. Lượt phóng lại nội suy từ ảnh nhỏ nhất để mọi khung hình dùng chung đầu vào.</p>
+  </section>
+  <section aria-labelledby="matrix-title">
+    <h2 id="matrix-title">Ma trận spline từng bước</h2>
+    <p class="intro">Chỉnh 8 mẫu mức xám để xem vế phải b của hệ A M = b thay đổi. Mỗi bước cập nhật một ẩn Mᵢ, là đạo hàm cấp hai tại một nút trong. Spline trên đoạn này đặt M₀ = M₇ = 0.</p>
+    <div class="controls">
+      <label>Dãy mẫu
+        <select id="matrix-preset">
+          <option value="edge">Đoạn qua biên thẳng</option>
+          <option value="texture">Đoạn qua hoa văn</option>
+          <option value="flat">Dãy hằng 128</option>
+          <option value="pixel">Đoạn chứa pixel trên ảnh đầu vào</option>
+          <option value="custom" disabled>Dãy chỉnh tay</option>
+        </select>
+      </label>
+      <label>Sai lệch spline cho phép δ
+        <select id="matrix-delta">
+          <option value="1">1 mức xám</option>
+          <option value="0.1" selected>0,1 mức xám</option>
+          <option value="0.01">0,01 mức xám</option>
+        </select>
+      </label>
+    </div>
+    <div id="matrix-linked-controls" hidden>
+      <p id="matrix-linked-note" class="note"></p>
+      <label class="matrix-linked-slider">Mức xám của pixel đã chọn
+        <input type="range" id="matrix-pixel-slider" min="0" max="255" step="any">
+      </label>
+      <a class="section-link" href="#image-title">Xem ảnh phóng</a>
+    </div>
+    <div id="matrix-samples" class="matrix-samples" role="group" aria-label="Tám mẫu mức xám"></div>
+    <p id="matrix-input-error" class="note" role="status" hidden>Điền đủ 8 mẫu, mỗi mẫu từ 0 đến 255. Bảng đang giữ dãy hợp lệ gần nhất.</p>
+    <div class="matrix-actions">
+      <button type="button" id="matrix-step">Cập nhật một ẩn</button>
+      <button type="button" id="matrix-sweep">Quét hết vòng</button>
+      <button type="button" id="matrix-play">Chạy tự động</button>
+      <button type="button" id="matrix-reset">Về vòng 0</button>
+    </div>
+    <p id="matrix-status" class="metric" role="status"></p>
+    <p id="matrix-summary" class="note"></p>
+    <div class="matrix-math">
+      <p id="matrix-rhs-equation"></p>
+      <p id="matrix-update-equation"></p>
+    </div>
+    <div class="table-wrap" tabindex="0" role="region" aria-label="Hệ spline và các giá trị theo từng nút">
+      <table class="matrix-table" aria-label="Ma trận A, vế phải, nghiệm Gauss–Seidel, nghiệm Thomas và phần dư">
+        <thead id="matrix-head"></thead>
+        <tbody id="matrix-body"></tbody>
+      </table>
+    </div>
+    <p class="note">Hàng tô màu ứng với phép tính đang hiển thị. Phần dư r = b − A M̃ được cập nhật sau từng bước, còn điều kiện dừng được kiểm tra ở vòng 0 và cuối mỗi vòng.</p>
   </section>
   <section aria-labelledby="solver-title">
     <h2 id="solver-title">Giải hệ spline trên một hàng pixel</h2>

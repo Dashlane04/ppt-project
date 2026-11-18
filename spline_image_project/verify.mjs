@@ -3,7 +3,8 @@ import test from 'node:test';
 import {
   compareSolvers, enlarge, enlargeSplineGaussSeidel, evaluatePchip, evaluateSpline, imageMae, maxDifference,
   padNaturalMoments, pchipSlopes, quantizePixels,
-  reduceByArea, residualInfinity, solveGaussSeidel, solveThomas, sourceCoordinate, splineRhs,
+  reduceByArea, residualInfinity, resizeByArea, resizeImage,
+  solveGaussSeidel, solveThomas, sourceCoordinate, splineRhs,
 } from './src/interpolation.mjs';
 
 function close(actual, expected, tolerance = 1e-12) {
@@ -25,6 +26,16 @@ test('bilinear interpolation agrees with hand calculations on a 2 by 2 patch', (
   const two = enlarge(image, 2, 'linear');
   // The four inner samples are 30, 50, 70, 90, symmetric about 60.
   assert.deepEqual([two.pixels[5], two.pixels[6], two.pixels[9], two.pixels[10]], [30, 50, 70, 90]);
+});
+
+test('whole-image resizing handles partial overlaps and different axis ratios', () => {
+  const row = { width: 3, height: 1, pixels: Uint8Array.from([0, 30, 90]) };
+  assert.deepEqual([...resizeByArea(row, 2, 1).pixels], [10, 70]);
+  const image = { width: 2, height: 2, pixels: Uint8Array.from([0, 60, 80, 140]) };
+  const resized = resizeImage(image, 3, 4, 'linear');
+  assert.deepEqual([resized.width, resized.height], [3, 4]);
+  close(resized.pixels[4], 50);
+  assert.deepEqual(resizeImage(image, 4, 4, 'spline'), enlarge(image, 2, 'spline'));
 });
 
 test('all samplers preserve constant images and preserve exact samples at scale one', () => {

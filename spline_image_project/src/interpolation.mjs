@@ -76,6 +76,43 @@ export function reduceByArea(image, scale) {
   return { width, height, pixels };
 }
 
+// Measure overlap in integer units. A source pixel spans outputLength units.
+function areaSpans(inputLength, outputLength) {
+  return Array.from({ length: outputLength }, (_, position) => {
+    const start = position * inputLength, end = start + inputLength;
+    const first = Math.floor(start / outputLength);
+    const last = Math.ceil(end / outputLength);
+    const overlaps = Array.from({ length: last - first }, (_, k) => {
+      const pixelStart = (first + k) * outputLength;
+      return Math.min(end, pixelStart + outputLength) - Math.max(start, pixelStart);
+    });
+    return { first, overlaps };
+  });
+}
+
+export function resizeByArea(image, width, height) {
+  if (![width, height].every(size => Number.isInteger(size) && size > 0)
+      || width > image.width || height > image.height) {
+    throw new RangeError('Area reduction requires positive dimensions within the input image');
+  }
+  const columns = areaSpans(image.width, width), rows = areaSpans(image.height, height);
+  const pixels = new Float64Array(width * height);
+  const area = image.width * image.height;
+  for (const [y, vertical] of rows.entries()) {
+    for (const [x, horizontal] of columns.entries()) {
+      let sum = 0;
+      for (const [j, yOverlap] of vertical.overlaps.entries()) {
+        const start = (vertical.first + j) * image.width + horizontal.first;
+        for (const [i, xOverlap] of horizontal.overlaps.entries()) {
+          sum += image.pixels[start + i] * xOverlap * yOverlap;
+        }
+      }
+      pixels[y * width + x] = sum / area;
+    }
+  }
+  return { width, height, pixels };
+}
+
 export function sourceCoordinate(position, scale, length) {
   return clamp((position + 0.5) / scale - 0.5, 0, length - 1);
 }
@@ -103,14 +140,22 @@ export function solveThomas(rhs) {
   return solution;
 }
 
+export function splineResidualAt(rhs, solution, i) {
+  const computed = 4 * solution[i] + (solution[i - 1] ?? 0) + (solution[i + 1] ?? 0);
+  return rhs[i] - computed;
+}
+
 export function residualInfinity(rhs, solution) {
   if (rhs.length !== solution.length) throw new RangeError('The system and solution sizes differ');
   let maximum = 0;
   for (let i = 0; i < rhs.length; i++) {
-    const computed = 4 * solution[i] + (solution[i - 1] ?? 0) + (solution[i + 1] ?? 0);
-    maximum = Math.max(maximum, Math.abs(rhs[i] - computed));
+    maximum = Math.max(maximum, Math.abs(splineResidualAt(rhs, solution, i)));
   }
   return maximum;
+}
+
+export function gaussSeidelValue(rhsValue, left, right) {
+  return (rhsValue - left - right) / 4;
 }
 
 export function solveGaussSeidel(rhs, {
@@ -126,7 +171,7 @@ export function solveGaussSeidel(rhs, {
   while (residual > tolerance && sweep < maxSweeps) {
     for (let i = 0; i < rhs.length; i++) {
       // Left neighbor already belongs to the new sweep. Right neighbor is still old.
-      solution[i] = (rhs[i] - (solution[i - 1] ?? 0) - (solution[i + 1] ?? 0)) / 4;
+      solution[i] = gaussSeidelValue(rhs[i], solution[i - 1] ?? 0, solution[i + 1] ?? 0);
     }
     residual = residualInfinity(rhs, solution);
     sweep++;
@@ -198,8 +243,9 @@ const kernels = {
   lanczos: { radius: 3, weight: x => Math.abs(x) < 3 ? sinc(x) * sinc(x / 3) : 0 },
 };
 
-function lineEvaluator(length, scale, method, solveMoments) {
-  const positions = Array.from({ length: length * scale }, (_, i) => sourceCoordinate(i, scale, length));
+function lineEvaluator(length, outputLength, method, solveMoments) {
+  const scale = outputLength / length;
+  const positions = Array.from({ length: outputLength }, (_, i) => sourceCoordinate(i, scale, length));
   if (method === 'spline') {
     return samples => {
       const moments = padNaturalMoments(solveMoments(splineRhs(samples)), samples.length);
@@ -239,10 +285,20 @@ function enlargeSeparable(image, scale, method, solveHorizontal, solveVertical) 
   if (!Number.isInteger(scale) || scale < 1 || image.width < 1 || image.height < 1) {
     throw new RangeError('Invalid image shape or integer scale');
   }
-  const width = image.width * scale, height = image.height * scale;
+  return resizeSeparable(image, image.width * scale, image.height * scale, method, solveHorizontal, solveVertical);
+}
+
+export function resizeImage(image, width, height, method) {
+  if (![image.width, image.height, width, height].every(size => Number.isInteger(size) && size > 0)) {
+    throw new RangeError('Image dimensions must be positive integers');
+  }
+  return resizeSeparable(image, width, height, method, solveThomas, solveThomas);
+}
+
+function resizeSeparable(image, width, height, method, solveHorizontal, solveVertical) {
   const horizontal = new Float64Array(width * image.height);
-  const row = lineEvaluator(image.width, scale, method, solveHorizontal);
-  const column = lineEvaluator(image.height, scale, method, solveVertical);
+  const row = lineEvaluator(image.width, width, method, solveHorizontal);
+  const column = lineEvaluator(image.height, height, method, solveVertical);
   for (let y = 0; y < image.height; y++) {
     const start = y * image.width;
     horizontal.set(row(image.pixels.subarray(start, start + image.width)), y * width);

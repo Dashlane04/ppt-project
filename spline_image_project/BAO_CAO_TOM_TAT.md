@@ -47,6 +47,7 @@ Cả **24 ca** thử ngưỡng dừng 3D đều thỏa chặn. Với phantom ở
 
 ## Sản phẩm đã hoàn thành
 
+- Theo dõi từng bước từ dữ liệu đầu vào đến ảnh phóng và lát cắt 3D trong [chương tổng hợp công thức, chứng minh và quy trình](CONG_THUC_CHUNG_MINH_VA_PIPELINE.md).
 - Đổi phương pháp nội suy, mức phóng và cách chia ngưỡng trong [demo chạy offline](demo.html).
 - Xem chứng minh, thiết lập, số liệu và hình trong [báo cáo chính](BAO_CAO_NGAY_14.md) và [báo cáo nâng cao](BAO_CAO_NANG_CAO.md).
 - Chuẩn bị trình bày với [bộ 16 slide](Phuong_phap_tinh_Noi_suy_spline.pptx), [kịch bản bảo vệ](TAP_BAO_VE_NGAY_18.md) và [ba ảnh dự phòng](du_phong_demo/). Mã thực nghiệm kèm [9 kiểm thử tự động](verify.mjs).

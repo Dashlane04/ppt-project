@@ -11,11 +11,12 @@ for (const photo of ['camera', 'astronaut']) {
 }
 
 const graph = (await fs.readFile(at('results/day14/kiem-chung-chan-1d.png'))).toString('base64');
-const [template, core, ui] = await Promise.all([
+const [template, core, ui, matrixUi, resizeUi] = await Promise.all([
   text('src/demo-template.html'), text('src/interpolation.mjs'), text('src/demo.mjs'),
+  text('src/matrix-demo.mjs'), text('src/resize-demo.mjs'),
 ]);
 const html = template.replace('%%CONVERGENCE_GRAPH%%', graph)
   .replace('<!-- INLINE_MODULE -->', () =>
-    `<script type="module">\n${core}\nconst EMBEDDED_PHOTOS = ${JSON.stringify(assets)};\n${ui}\n</script>`);
+    `<script type="module">\n${core}\nconst EMBEDDED_PHOTOS = ${JSON.stringify(assets)};\n${ui}\n${matrixUi}\n${resizeUi}\n</script>`);
 await fs.writeFile(at('demo.html'), html, 'utf8');
 console.log('Offline demo generated.');

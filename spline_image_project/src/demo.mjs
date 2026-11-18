@@ -45,23 +45,126 @@ function paint(canvas, width, height, pixels, name) {
   context.putImageData(data, 0, 0);
 }
 
-function compareImages() {
-  const reference = getReference(sample.value);
-  const scale = Number(scaleSelect.value);
-  const input = reduceByArea(reference, scale);
-  paint(byId('input-canvas'), input.width, input.height, quantizePixels(input.pixels), 'Ảnh nhỏ đầu vào');
-  byId('dimensions').textContent = `${input.width} × ${input.height} px → ${reference.width} × ${reference.height} px`;
-  const cache = new Map([['original', reference.pixels]]);
-  for (const [side, select] of Object.entries(methodSelects)) {
-    const method = select.value;
-    if (!cache.has(method)) cache.set(method, quantizePixels(enlarge(input, scale, method).pixels));
-    const pixels = cache.get(method);
-    paint(byId(side + '-canvas'), reference.width, reference.height, pixels, METHOD_NAMES[method]);
-    byId(side + '-metric').textContent = method === 'original' ? 'Mốc so sánh'
-      : `MAE ${number.format(imageMae(pixels, reference.pixels))} mức xám`;
-    byId(side + '-description').textContent = methodDescription[method];
+function setupPixelComparison() {
+  const canvas = byId('input-canvas'), marker = byId('pixel-marker');
+  const slider = byId('pixel-slider'), valueInput = byId('pixel-value');
+  const reset = byId('pixel-reset');
+  let reference, scale, input, originalInput, originalOutputs, x, y;
+  let frame = null;
+  const selectedIndex = () => y * input.width + x;
+  const isEdited = () => input.pixels[selectedIndex()] !== originalInput.pixels[selectedIndex()];
+  const renderedPixels = (image, method) => quantizePixels(enlarge(image, scale, method).pixels);
+
+  function renderImages() {
+    if (frame !== null) cancelAnimationFrame(frame);
+    frame = null;
+    paint(canvas, input.width, input.height, quantizePixels(input.pixels), 'Ảnh nhỏ để chọn pixel');
+    const edited = isEdited();
+    const currentOutputs = new Map();
+    for (const [side, select] of Object.entries(methodSelects)) {
+      const method = select.value;
+      if (!originalOutputs.has(method)) originalOutputs.set(method, renderedPixels(originalInput, method));
+      const before = originalOutputs.get(method);
+      const compareEdit = edited && method !== 'original';
+      if (compareEdit && !currentOutputs.has(method)) currentOutputs.set(method, renderedPixels(input, method));
+      const pixels = compareEdit ? currentOutputs.get(method) : before;
+      paint(byId(side + '-canvas'), reference.width, reference.height, pixels, METHOD_NAMES[method]);
+      byId(side + '-metric').textContent = method === 'original' ? 'Mốc so sánh'
+        : `MAE ${number.format(imageMae(pixels, reference.pixels))} mức xám`;
+      byId(side + '-description').textContent = methodDescription[method];
+      const effect = byId(side + '-pixel-effect');
+      effect.hidden = !compareEdit;
+      if (compareEdit) {
+        let changed = 0, maximum = 0;
+        for (let i = 0; i < pixels.length; i++) {
+          const difference = Math.abs(pixels[i] - before[i]);
+          changed += difference !== 0;
+          maximum = Math.max(maximum, difference);
+        }
+        effect.textContent = `Sau làm tròn · ${number.format(changed)} pixel đầu ra thay đổi`
+          + ` · Chênh lớn nhất ${maximum} mức xám so với trước khi chỉnh.`;
+      }
+    }
   }
+
+  function reflectSelection(updateNumber = true) {
+    const index = selectedIndex();
+    const original = originalInput.pixels[index], current = input.pixels[index];
+    marker.style.left = `${100 * x / input.width}%`;
+    marker.style.top = `${100 * y / input.height}%`;
+    marker.style.width = `${100 / input.width}%`;
+    marker.style.height = `${100 / input.height}%`;
+    slider.value = current;
+    if (updateNumber) valueInput.value = current;
+    reset.disabled = !isEdited();
+    byId('pixel-position').textContent = `Pixel (${x}, ${y}) · Gốc ${number.format(original)} → ${number.format(current)}`;
+    canvas.dispatchEvent(new Event('input-pixel-change'));
+  }
+
+  function initialize() {
+    reference = getReference(sample.value);
+    scale = Number(scaleSelect.value);
+    originalInput = reduceByArea(reference, scale);
+    input = { ...originalInput, pixels: originalInput.pixels.slice() };
+    originalOutputs = new Map([['original', reference.pixels]]);
+    x = Math.floor(input.width / 2);
+    y = Math.floor(input.height / 4);
+    byId('dimensions').textContent = `${input.width} × ${input.height} px → ${reference.width} × ${reference.height} px`;
+    reflectSelection();
+    renderImages();
+  }
+
+  function selectPixel(column, row) {
+    const nextX = clamp(column, 0, input.width - 1);
+    const nextY = clamp(row, 0, input.height - 1);
+    if (nextX === x && nextY === y) return;
+    input.pixels[selectedIndex()] = originalInput.pixels[selectedIndex()];
+    x = nextX;
+    y = nextY;
+    reflectSelection();
+    renderImages();
+  }
+
+  function changeValue(value, updateNumber = true) {
+    if (input.pixels[selectedIndex()] === value) return;
+    input.pixels[selectedIndex()] = value;
+    reflectSelection(updateNumber);
+    if (frame === null) frame = requestAnimationFrame(renderImages);
+  }
+
+  canvas.addEventListener('click', event => {
+    const rect = canvas.getBoundingClientRect();
+    selectPixel(Math.floor((event.clientX - rect.left) * input.width / rect.width),
+      Math.floor((event.clientY - rect.top) * input.height / rect.height));
+  });
+  const directions = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] };
+  canvas.addEventListener('keydown', event => {
+    const direction = directions[event.key];
+    if (!direction) return;
+    event.preventDefault();
+    selectPixel(x + direction[0], y + direction[1]);
+  });
+  slider.addEventListener('input', () => changeValue(Math.round(slider.valueAsNumber)));
+  valueInput.addEventListener('input', () => {
+    if (valueInput.validity.valid) changeValue(valueInput.valueAsNumber, false);
+  });
+  valueInput.addEventListener('blur', () => { valueInput.value = input.pixels[selectedIndex()]; });
+  reset.addEventListener('click', () => changeValue(originalInput.pixels[selectedIndex()]));
+  for (const select of [sample, scaleSelect]) select.addEventListener('change', initialize);
+  for (const select of Object.values(methodSelects)) select.addEventListener('change', renderImages);
+  initialize();
+
+  return {
+    changeValue,
+    rowWindow(length) {
+      const column = clamp(x - Math.floor(length / 2), 0, input.width - length);
+      const start = y * input.width + column;
+      return { y, column, index: x - column, samples: input.pixels.subarray(start, start + length) };
+    },
+  };
 }
+
+const pixelComparison = setupPixelComparison();
 
 function compareRow() {
   const kind = byId('solver-case').value;
@@ -123,9 +226,7 @@ function compareWholeImage() {
   byId('map-scale').textContent = `Thang màu tự chỉnh từ 0 đến ${sci(maximum)} mức xám trước làm tròn.`;
 }
 
-for (const select of [sample, scaleSelect, ...Object.values(methodSelects)]) select.addEventListener('change', compareImages);
 for (const id of ['solver-case', 'row-delta']) byId(id).addEventListener('change', compareRow);
 for (const id of ['image-case', 'image-delta', 'image-share']) byId(id).addEventListener('change', compareWholeImage);
-compareImages();
 compareRow();
 compareWholeImage();

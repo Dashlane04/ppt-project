@@ -7,9 +7,10 @@ Khi phóng ảnh bằng spline tự nhiên, cần giải một hệ ba đường
 | Nội dung | Tệp |
 |---|---|
 | Báo cáo | [Tóm tắt](spline_image_project/BAO_CAO_TOM_TAT.md), [phương pháp và kiểm chứng](spline_image_project/BAO_CAO_NGAY_14.md), [phần nâng cao](spline_image_project/BAO_CAO_NANG_CAO.md) |
+| Chương kỹ thuật | [Công thức, chứng minh và quy trình từ bài toán đến ứng dụng](spline_image_project/CONG_THUC_CHUNG_MINH_VA_PIPELINE.md) |
 | Trình bày | [Bộ 16 slide PowerPoint](spline_image_project/Phuong_phap_tinh_Noi_suy_spline.pptx), [kịch bản và câu hỏi luyện bảo vệ](spline_image_project/TAP_BAO_VE_NGAY_18.md) |
 | Tổ chức nhóm | [Bảng ý tưởng, đề cương và phân công](outputs/spline-nhom-3/De_cuong_va_phan_cong_nhom_3.xlsx) |
-| Demo | Tải [demo.html](spline_image_project/demo.html) và mở trực tiếp trong trình duyệt |
+| Demo | [Mở trên GitHub Pages](https://dashlane04.github.io/ppt-project/) hoặc tải [demo.html](spline_image_project/demo.html) để chạy offline. Có tiến trình thu nhỏ rồi phóng lại toàn ảnh, cùng phần chỉnh một pixel và xem hệ spline quanh điểm đó. |
 | Thực nghiệm | [Mã nội suy](spline_image_project/src/interpolation.mjs), [dữ liệu và nguồn ảnh](spline_image_project/data/manifest.json), [kết quả và hình minh họa](spline_image_project/results/) |
 
 ## Chạy lại thí nghiệm
